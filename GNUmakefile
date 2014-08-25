@@ -472,7 +472,7 @@ CPPFLAGS_COMMON =	\
 					-I./Delta/DeltaExtraLibraries/wxWidgets/Include \
 					-I./Delta/DeltaExtraLibraries/JSONParser/Include \
 					-D_UNIX_ \
-					 -DwxSIZE_T_IS_UINT \
+					-DwxSIZE_T_IS_UINT \
 
 LDFLAGS_RELEASE		= $(LDFLAGS_COMMON)
 CXXFLAGS_RELEASE	= $(CXXFLAGS_COMMON) -O2
