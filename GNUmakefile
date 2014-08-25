@@ -147,7 +147,6 @@ Sources =	./Delta/FileReadersLib/Src/StringFile.cpp \
 			./Delta/DeltaVirtualMachine/Src/DeltaExternId.cpp \
 			./Delta/DeltaVirtualMachine/Src/DeltaExternIdFactory.cpp \
 			./Delta/DeltaVirtualMachine/Src/DeltaCollectableContainer.cpp \
-			./Delta/DeltaConsoleDebugger/Src/DebugWatchValueRcDecoder.cpp \
 			./Delta/DeltaConsoleDebugger/Src/DeltaConsoleDebugger.cpp \
 			./Delta/DebugClient/Src/DebugClient.cpp \
 			./Delta/DebugClient/Src/DeltaDebugClientBreakPoints.cpp \
@@ -444,7 +443,7 @@ Depends =	\
 			$(ObjectsD:.o=.d) $(ObjectsWxD:.o=.d) $(ObjectsXMLD:.o=.d) $(ObjectsDeltaCompilerD:.o=.d) $(ObjectsDeltaVMD:.o=.d)
 
 LDFLAGS_COMMON = -m32 -Xlinker --rpath -Xlinker $(PWD)/lib -rdynamic -L$(PWD)/lib
-CXXFLAGS_COMMON = -ansi -pedantic -pthread -m32
+CXXFLAGS_COMMON = -std=c++1y -pedantic -pthread -m32
 CPPFLAGS_COMMON =	\
 					-I./Delta/FileReadersLib/Include \
 					-I./Delta/DebugLib/Include \
@@ -471,7 +470,9 @@ CPPFLAGS_COMMON =	\
 					-I./DeltaAnsiCompiler/Include \
 					-I./DeltaAnsiVMDebug/Include \
 					-I./Delta/DeltaExtraLibraries/wxWidgets/Include \
+					-I./Delta/DeltaExtraLibraries/JSONParser/Include \
 					-D_UNIX_ \
+                    -DwxSIZE_T_IS_UINT \
 
 LDFLAGS_RELEASE		= $(LDFLAGS_COMMON)
 CXXFLAGS_RELEASE	= $(CXXFLAGS_COMMON) -O2
