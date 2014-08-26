@@ -5,6 +5,9 @@ endif
 ifeq (${WXCONFIG},)
 WXCONFIG=$(WX_WIDGETS)/bin/wx-config
 endif
+ifeq ($(XZ),)
+XZ=xz
+endif
 
 include Sources.mk
 
@@ -24,6 +27,42 @@ ObjectsXMLD           := $(foreach Source, $(SourcesXML), ${OutBuildDir}/$(Sourc
 ObjectsDeltaCompilerD := $(foreach Source, $(SourcesDeltaCompiler), ${OutBuildDir}/$(Source)_d.o)
 ObjectsDeltaVMD       := $(foreach Source, $(SourcesDeltaVM), ${OutBuildDir}/$(Source)_d.o)
 
+Preprocessed               := $(foreach source, ${Sources}, ${OutBuildDir}/${source}.ii.xz)
+PreprocessedWx             := $(foreach source, ${SourcesWx}, ${OutBuildDir}/${source}.ii.xz)
+PreprocessedXML            := $(foreach source, ${SourcesXML}, ${OutBuildDir}/${source}.ii.xz)
+PreprocessedDeltaCompiler  := $(foreach source, ${SourcesDeltaCompiler}, ${OutBuildDir}/${source}.ii.xz)
+PreprocessedDeltaVM        := $(foreach source, ${SourcesDeltaVM}, ${OutBuildDir}/${source}.ii.xz)
+
+PreprocessedD              := $(foreach source, ${Sources}, ${OutBuildDir}/${source}_d.ii.xz)
+PreprocessedWxD            := $(foreach source, ${SourcesWx}, ${OutBuildDir}/${source}_d.ii.xz)
+PreprocessedXMLD           := $(foreach source, ${SourcesXML}, ${OutBuildDir}/${source}_d.ii.xz)
+PreprocessedDeltaCompilerD := $(foreach source, ${SourcesDeltaCompiler}, ${OutBuildDir}/${source}_d.ii.xz)
+PreprocessedDeltaVMD       := $(foreach source, ${SourcesDeltaVM}, ${OutBuildDir}/${source}_d.ii.xz)
+
+AllPreprocessed := \
+	${Preprocessed} \
+	${PreprocessedWx} \
+	${PreprocessedXML} \
+	${PreprocessedDeltaCompiler} \
+	${PreprocessedDeltaVM} \
+	${PreprocessedD} \
+	${PreprocessedWxD} \
+	${PreprocessedXMLD} \
+	${PreprocessedDeltaCompilerD} \
+	${PreprocessedDeltaVMD} \
+
+AllObjects := \
+	${Objects} \
+	${ObjectsWx} \
+	${ObjectsXML} \
+	${ObjectsDeltaCompiler} \
+	${ObjectsDeltaVM} \
+	${ObjectsD} \
+	${ObjectsWxD} \
+	${ObjectsXMLD} \
+	${ObjectsDeltaCompilerD} \
+	${ObjectsDeltaVMD} \
+
 Dirs                  := $(foreach object, ${Objects}, $(dir ${object}))
 DirsWx                := $(foreach object, ${ObjectsWx}, $(dir ${object}))
 DirsXML               := $(foreach object, ${ObjectsXML}, $(dir ${object}))
@@ -37,7 +76,7 @@ Depends := \
 			$(ObjectsD:.o=.d) $(ObjectsWxD:.o=.d) $(ObjectsXMLD:.o=.d) $(ObjectsDeltaCompilerD:.o=.d) $(ObjectsDeltaVMD:.o=.d)
 
 LDFLAGS_COMMON  := -m32 -Xlinker --rpath -Xlinker $(PWD)/lib -rdynamic -L$(PWD)/lib
-CXXFLAGS_COMMON := -std=c++1y -pedantic -pthread -m32
+CXXFLAGS_COMMON := -std=c++1y -pedantic -pthread -m32 -pipe
 CPPFLAGS_COMMON :=	$(foreach Module, \
 					FileReadersLib \
 					DebugLib \
@@ -81,8 +120,14 @@ LDFLAGS_DEBUG		:= $(LDFLAGS_COMMON)
 CXXFLAGS_DEBUG		:= $(CXXFLAGS_COMMON) -g -O0
 CPPFLAGS_DEBUG		:= $(CPPFLAGS_COMMON) -D_DEBUG $(shell ${WXCONFIG} --unicode=yes --cppflags)
 
+${OutBuildDir}/%.cpp.ii.xz : %.cpp
+	$(CXX) $(CXXFLAGS_RELEASE) $(CPPFLAGS_RELEASE) -E -MD -MF ${OutBuildDir}/$*.cpp.d -o- $< | \
+	$(XZ) > $@
 ${OutBuildDir}/%.cpp.o : %.cpp
 	$(CXX) $(CXXFLAGS_RELEASE) $(CPPFLAGS_RELEASE) -c -MD -MF ${OutBuildDir}/$*.cpp.d -o $@ $<
+${OutBuildDir}/%.cpp_d.ii.xz : %.cpp
+	$(CXX) $(CXXFLAGS_DEBUG) $(CPPFLAGS_DEBUG) -E -MD -MF ${OutBuildDir}/$*.cpp_d.d -o- $< | \
+	$(XZ) > $@
 ${OutBuildDir}/%.cpp_d.o : %.cpp
 	$(CXX) $(CXXFLAGS_DEBUG) $(CPPFLAGS_DEBUG) -c -MD -MF ${OutBuildDir}/$*.cpp_d.d -o $@ $<
 
@@ -100,9 +145,11 @@ all: ${AllDirs} \
      lib/libxmld.so \
 
 dirs: ${AllDirs}
+preprocessed: ${AllPreprocessed}
+objects: ${AllObjects}
 clean:
 	for d in ${OutBuildDir} ${OutBinDir} ${OutLibDir} ; do if [ -d "$$d" ] ; then rm -rv "$$d" ; fi ; done ;
-.PHONY: all clean
+.PHONY: all dirs preprocessed clean objects
 
 
 lib/libdelta.so: $(Objects)
