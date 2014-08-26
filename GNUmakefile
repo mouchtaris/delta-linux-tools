@@ -2,6 +2,9 @@
 ifeq ($(WX_WIDGETS),)
 $(error 'WX_WIDGETS not set')
 endif
+ifeq (${WXCONFIG},)
+WXCONFIG=$(WX_WIDGETS)/bin/wx-config
+endif
 
 include Sources.mk
 
@@ -51,15 +54,14 @@ CPPFLAGS_COMMON =	\
 					-I./Delta/DeltaExtraLibraries/wxWidgets/Include \
 					-I./Delta/DeltaExtraLibraries/JSONParser/Include \
 					-D_UNIX_ \
-					-DwxSIZE_T_IS_UINT \
 
 LDFLAGS_RELEASE		= $(LDFLAGS_COMMON)
 CXXFLAGS_RELEASE	= $(CXXFLAGS_COMMON) -O2
-CPPFLAGS_RELEASE	= $(CPPFLAGS_COMMON) $(shell $(WX_WIDGETS)/bin/wx-config --debug=no --unicode=yes --cppflags)
+CPPFLAGS_RELEASE	= $(CPPFLAGS_COMMON) $(shell ${WXCONFIG} --debug=no --unicode=yes --cppflags)
 
 LDFLAGS_DEBUG		= $(LDFLAGS_COMMON)
 CXXFLAGS_DEBUG		= $(CXXFLAGS_COMMON) -g -O0
-CPPFLAGS_DEBUG		= $(CPPFLAGS_COMMON) -D_DEBUG $(shell $(WX_WIDGETS)/bin/wx-config --debug=yes --unicode=yes --cppflags)
+CPPFLAGS_DEBUG		= $(CPPFLAGS_COMMON) -D_DEBUG $(shell ${WXCONFIG} --debug=yes --unicode=yes --cppflags)
 
 _build/%.cpp.o : %.cpp
 	if ! [ -d $(dir $@) ] ; then mkdir --verbose --parent $(dir $@) ; fi
@@ -81,7 +83,7 @@ lib/libxml.so: $(ObjectsXML)
 	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsXML) $(LDFLAGS_RELEASE)
 lib/libwx.so: $(ObjectsWx)
 	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
-	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsWx) $(LDFLAGS_RELEASE) -Xlinker --rpath -Xlinker $(shell $(WX_WIDGETS)/bin/wx-config --debug=no --unicode --prefix)/lib $(shell $(WX_WIDGETS)/bin/wx-config --debug=no --unicode --libs)
+	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsWx) $(LDFLAGS_RELEASE) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --debug=no --unicode --prefix)/lib $(shell ${WXCONFIG} --debug=no --unicode --libs)
 
 bin/nmdc: $(ObjectsDeltaCompiler) lib/libdelta.so
 	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
@@ -103,7 +105,7 @@ lib/libxmld.so: $(ObjectsXMLD)
 	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsXMLD) $(LDFLAGS_DEBUG)
 lib/libwxd.so: $(ObjectsWxD)
 	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
-	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsWxD) $(LDFLAGS_DEBUG) -Xlinker --rpath -Xlinker $(shell $(WX_WIDGETS)/bin/wx-config --debug --unicode --prefix)/lib $(shell $(WX_WIDGETS)/bin/wx-config --debug --unicode --libs)
+	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsWxD) $(LDFLAGS_DEBUG) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --debug --unicode --prefix)/lib $(shell ${WXCONFIG} --debug --unicode --libs)
 
 bin/nmdcd: $(ObjectsDeltaCompilerD) lib/libdeltad.so
 	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
