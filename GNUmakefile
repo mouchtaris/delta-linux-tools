@@ -8,17 +8,29 @@ endif
 
 include Sources.mk
 
-Objects               := $(foreach Source, $(Sources), _build/$(Source).o)
-ObjectsWx             := $(foreach Source, $(SourcesWx), _build/$(Source).o)
-ObjectsXML            := $(foreach Source, $(SourcesXML), _build/$(Source).o)
-ObjectsDeltaCompiler  := $(foreach Source, $(SourcesDeltaCompiler), _build/$(Source).o)
-ObjectsDeltaVM        := $(foreach Source, $(SourcesDeltaVM), _build/$(Source).o)
+OutBinDir             := bin
+OutLibDir             := lib
+OutBuildDir           := _build
 
-ObjectsD              := $(foreach Source, $(Sources), _build/$(Source)_d.o)
-ObjectsWxD            := $(foreach Source, $(SourcesWx), _build/$(Source)_d.o)
-ObjectsXMLD           := $(foreach Source, $(SourcesXML), _build/$(Source)_d.o)
-ObjectsDeltaCompilerD := $(foreach Source, $(SourcesDeltaCompiler), _build/$(Source)_d.o)
-ObjectsDeltaVMD       := $(foreach Source, $(SourcesDeltaVM), _build/$(Source)_d.o)
+Objects               := $(foreach Source, $(Sources), ${OutBuildDir}/$(Source).o)
+ObjectsWx             := $(foreach Source, $(SourcesWx), ${OutBuildDir}/$(Source).o)
+ObjectsXML            := $(foreach Source, $(SourcesXML), ${OutBuildDir}/$(Source).o)
+ObjectsDeltaCompiler  := $(foreach Source, $(SourcesDeltaCompiler), ${OutBuildDir}/$(Source).o)
+ObjectsDeltaVM        := $(foreach Source, $(SourcesDeltaVM), ${OutBuildDir}/$(Source).o)
+
+ObjectsD              := $(foreach Source, $(Sources), ${OutBuildDir}/$(Source)_d.o)
+ObjectsWxD            := $(foreach Source, $(SourcesWx), ${OutBuildDir}/$(Source)_d.o)
+ObjectsXMLD           := $(foreach Source, $(SourcesXML), ${OutBuildDir}/$(Source)_d.o)
+ObjectsDeltaCompilerD := $(foreach Source, $(SourcesDeltaCompiler), ${OutBuildDir}/$(Source)_d.o)
+ObjectsDeltaVMD       := $(foreach Source, $(SourcesDeltaVM), ${OutBuildDir}/$(Source)_d.o)
+
+Dirs                  := $(foreach object, ${Objects}, $(dir ${object}))
+DirsWx                := $(foreach object, ${ObjectsWx}, $(dir ${object}))
+DirsXML               := $(foreach object, ${ObjectsXML}, $(dir ${object}))
+DirsDeltaCompiler     := $(foreach object, ${ObjectsDeltaCompiler}, $(dir ${object}))
+DirsDeltaVM           := $(foreach object, ${ObjectsDeltaVM}, $(dir ${object}))
+AllDirs               := $(sort ${Dirs} ${DirsWx} ${DirsXML} ${DirsDeltaCompiler} ${DirsDeltaVM} \
+                           ${OutBinDir} ${OutLibDir} )
 
 Depends := \
 			$(Objects:.o=.d) $(ObjectsWx:.o=.d) $(ObjectsXML:.o=.d) $(ObjectsDeltaCompiler:.o=.d) $(ObjectsDeltaVM:.o=.d)	\
@@ -67,64 +79,68 @@ CPPFLAGS_RELEASE	:= $(CPPFLAGS_COMMON) $(shell ${WXCONFIG} --debug=no --unicode=
 
 LDFLAGS_DEBUG		:= $(LDFLAGS_COMMON)
 CXXFLAGS_DEBUG		:= $(CXXFLAGS_COMMON) -g -O0
-CPPFLAGS_DEBUG		:= $(CPPFLAGS_COMMON) -D_DEBUG $(shell ${WXCONFIG} --debug=yes --unicode=yes --cppflags)
+CPPFLAGS_DEBUG		:= $(CPPFLAGS_COMMON) -D_DEBUG $(shell ${WXCONFIG} --unicode=yes --cppflags)
 
-_build/%.cpp.o : %.cpp
-	if ! [ -d $(dir $@) ] ; then mkdir --verbose --parent $(dir $@) ; fi
-	$(CXX) $(CXXFLAGS_RELEASE) $(CPPFLAGS_RELEASE) -c -MD -MF _build/$*.cpp.d -o $@ $<
-_build/%.cpp_d.o : %.cpp
-	if ! [ -d $(dir $@) ] ; then mkdir --verbose --parent $(dir $@) ; fi
-	$(CXX) $(CXXFLAGS_DEBUG) $(CPPFLAGS_DEBUG) -c -MD -MF _build/$*.cpp_d.d -o $@ $<
+${OutBuildDir}/%.cpp.o : %.cpp
+	$(CXX) $(CXXFLAGS_RELEASE) $(CPPFLAGS_RELEASE) -c -MD -MF ${OutBuildDir}/$*.cpp.d -o $@ $<
+${OutBuildDir}/%.cpp_d.o : %.cpp
+	$(CXX) $(CXXFLAGS_DEBUG) $(CPPFLAGS_DEBUG) -c -MD -MF ${OutBuildDir}/$*.cpp_d.d -o $@ $<
 
-all: lib/libdelta.so lib/libxml.so bin/nmdc bin/nmdvm bin/nmdisco lib/libdeltad.so lib/libxmld.so bin/nmdcd bin/nmdvmd bin/nmdiscod lib/libwx.so lib/libwxd.so
+all: ${AllDirs} \
+     bin/nmdc \
+     bin/nmdvm \
+     bin/nmdisco \
+     lib/libwx.so \
+     lib/libxml.so \
+     \
+     bin/nmdcd \
+     bin/nmdvmd \
+     bin/nmdiscod \
+     lib/libwxd.so \
+     lib/libxmld.so \
+
+dirs: ${AllDirs}
 clean:
-	for d in _build bin lib ; do if [ -d "$$d" ] ; then rm -rv "$$d" ; fi ; done ;
+	for d in ${OutBuildDir} ${OutBinDir} ${OutLibDir} ; do if [ -d "$$d" ] ; then rm -rv "$$d" ; fi ; done ;
 .PHONY: all clean
 
+
 lib/libdelta.so: $(Objects)
-	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
 	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(Objects) $(LDFLAGS_RELEASE)
 lib/libxml.so: $(ObjectsXML)
-	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
 	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsXML) $(LDFLAGS_RELEASE)
 lib/libwx.so: $(ObjectsWx)
-	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
 	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsWx) $(LDFLAGS_RELEASE) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --debug=no --unicode --prefix)/lib $(shell ${WXCONFIG} --debug=no --unicode --libs)
 
 bin/nmdc: $(ObjectsDeltaCompiler) lib/libdelta.so
-	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
 	$(CXX) $(CXXFLAGS_RELEASE) -o $@ $(LDFLAGS_RELEASE) $(ObjectsDeltaCompiler) -ldelta -ldl
 bin/nmdvm: $(ObjectsDeltaVM) lib/libdelta.so
-	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
 	$(CXX) $(CXXFLAGS_RELEASE) -o $@ $(LDFLAGS_RELEASE) $(ObjectsDeltaVM) -ldelta -ldl
 bin/nmdisco: lib/libdelta.so
-	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
 	$(CXX) $(CXXFLAGS_RELEASE) -o $@ $(LDFLAGS_RELEASE) -ldelta -ldl
 
 
 
 lib/libdeltad.so: $(ObjectsD)
-	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
 	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsD) $(LDFLAGS_DEBUG)
 lib/libxmld.so: $(ObjectsXMLD)
-	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
 	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsXMLD) $(LDFLAGS_DEBUG)
 lib/libwxd.so: $(ObjectsWxD)
-	if ! [ -d lib ] ; then mkdir --verbose lib ; fi
 	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsWxD) $(LDFLAGS_DEBUG) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --debug --unicode --prefix)/lib $(shell ${WXCONFIG} --debug --unicode --libs)
 
 bin/nmdcd: $(ObjectsDeltaCompilerD) lib/libdeltad.so
-	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
 	$(CXX) $(CXXFLAGS_DEBUG) -o $@ $(LDFLAGS_DEBUG) $(ObjectsDeltaCompilerD) -ldeltad -ldl
 bin/nmdvmd: $(ObjectsDeltaVMD) lib/libdeltad.so
-	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
 	$(CXX) $(CXXFLAGS_DEBUG) -o $@ $(LDFLAGS_DEBUG) $(ObjectsDeltaVMD) -ldeltad -ldl
 bin/nmdiscod: lib/libdeltad.so
-	if ! [ -d bin ] ; then mkdir --verbose bin ; fi
 	$(CXX) $(CXXFlAGS_DEBUG) -o $@ $(LDFLAGS_DEBUG) -ldeltad -ldl
+
 
 
 Sources.mk: make_sources.bash
 	$(SHELL) make_sources.bash
+
+${AllDirs}:
+	mkdir --verbose --parent $@
 
 -include $(Depends)
