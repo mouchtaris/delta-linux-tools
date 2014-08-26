@@ -8,60 +8,66 @@ endif
 
 include Sources.mk
 
-Objects = $(foreach Source, $(Sources), _build/$(Source).o)
-ObjectsWx = $(foreach Source, $(SourcesWx), _build/$(Source).o)
-ObjectsXML = $(foreach Source, $(SourcesXML), _build/$(Source).o)
-ObjectsDeltaCompiler = $(foreach Source, $(SourcesDeltaCompiler), _build/$(Source).o)
-ObjectsDeltaVM = $(foreach Source, $(SourcesDeltaVM), _build/$(Source).o)
+Objects               := $(foreach Source, $(Sources), _build/$(Source).o)
+ObjectsWx             := $(foreach Source, $(SourcesWx), _build/$(Source).o)
+ObjectsXML            := $(foreach Source, $(SourcesXML), _build/$(Source).o)
+ObjectsDeltaCompiler  := $(foreach Source, $(SourcesDeltaCompiler), _build/$(Source).o)
+ObjectsDeltaVM        := $(foreach Source, $(SourcesDeltaVM), _build/$(Source).o)
 
-ObjectsD = $(foreach Source, $(Sources), _build/$(Source)_d.o)
-ObjectsWxD = $(foreach Source, $(SourcesWx), _build/$(Source)_d.o)
-ObjectsXMLD = $(foreach Source, $(SourcesXML), _build/$(Source)_d.o)
-ObjectsDeltaCompilerD = $(foreach Source, $(SourcesDeltaCompiler), _build/$(Source)_d.o)
-ObjectsDeltaVMD = $(foreach Source, $(SourcesDeltaVM), _build/$(Source)_d.o)
+ObjectsD              := $(foreach Source, $(Sources), _build/$(Source)_d.o)
+ObjectsWxD            := $(foreach Source, $(SourcesWx), _build/$(Source)_d.o)
+ObjectsXMLD           := $(foreach Source, $(SourcesXML), _build/$(Source)_d.o)
+ObjectsDeltaCompilerD := $(foreach Source, $(SourcesDeltaCompiler), _build/$(Source)_d.o)
+ObjectsDeltaVMD       := $(foreach Source, $(SourcesDeltaVM), _build/$(Source)_d.o)
 
-Depends =	\
+Depends := \
 			$(Objects:.o=.d) $(ObjectsWx:.o=.d) $(ObjectsXML:.o=.d) $(ObjectsDeltaCompiler:.o=.d) $(ObjectsDeltaVM:.o=.d)	\
 			$(ObjectsD:.o=.d) $(ObjectsWxD:.o=.d) $(ObjectsXMLD:.o=.d) $(ObjectsDeltaCompilerD:.o=.d) $(ObjectsDeltaVMD:.o=.d)
 
-LDFLAGS_COMMON = -m32 -Xlinker --rpath -Xlinker $(PWD)/lib -rdynamic -L$(PWD)/lib
-CXXFLAGS_COMMON = -std=c++1y -pedantic -pthread -m32
-CPPFLAGS_COMMON =	\
-					-I./Delta/FileReadersLib/Include \
-					-I./Delta/DebugLib/Include \
-					-I./Delta/DeltaDebugLoader/Include \
-					-I./Delta/DebugWatchValueInfo/Include \
-					-I./Delta/Common/Include \
-					-I./Delta/UtilLib/Include \
-					-I./Delta/DeltaCompiler/Include \
-					-I./Delta/DeltaDebuggedVMFacade/Include \
-					-I./Delta/ResourceLoaderLib/Include \
-					-I./Delta/DeltaVirtualMachine/Include \
-					-I./Delta/DeltaConsoleDebugger/Include \
-					-I./Delta/DebugClient/Include \
-					-I./Delta/DeltaDebugMessageEncoding/Include \
-					-I./Delta/DebugExprEvaluator/Include \
-					-I./Delta/DeltaStdLib/Include \
-					-I./Delta/DeltaVirtualMachineDebugExtensions/Include \
-					-I./Delta/DeltaPureVMFacade/Include \
-					-I./Delta/DebugBreakPointHolder/Include \
-					-I./Delta/SocketLib/Include \
-					-I./Delta/DebugServer/Include \
-					-I./Delta/DeltaSyntaxTree/Include \
-					-I./Delta/DeltaExtraLibraries/XMLParser/Include \
-					-I./DeltaAnsiCompiler/Include \
-					-I./DeltaAnsiVMDebug/Include \
-					-I./Delta/DeltaExtraLibraries/wxWidgets/Include \
-					-I./Delta/DeltaExtraLibraries/JSONParser/Include \
+LDFLAGS_COMMON  := -m32 -Xlinker --rpath -Xlinker $(PWD)/lib -rdynamic -L$(PWD)/lib
+CXXFLAGS_COMMON := -std=c++1y -pedantic -pthread -m32
+CPPFLAGS_COMMON :=	$(foreach Module, \
+					FileReadersLib \
+					DebugLib \
+					DeltaDebugLoader \
+					DebugWatchValueInfo \
+					Common \
+					UtilLib \
+					DeltaCompiler \
+					DeltaDebuggedVMFacade \
+					ResourceLoaderLib \
+					DeltaVirtualMachine \
+					DeltaConsoleDebugger \
+					DebugClient \
+					DeltaDebugMessageEncoding \
+					DebugExprEvaluator \
+					DeltaStdLib \
+					DeltaVirtualMachineDebugExtensions \
+					DeltaPureVMFacade \
+					DebugBreakPointHolder \
+					SocketLib \
+					DebugServer \
+					DeltaSyntaxTree \
+					, -IDelta/${Module}/Include ) \
+					 \
+					-IDeltaAnsiCompiler/Include \
+					-IDeltaAnsiVMDebug/Include \
+					\
+					$(foreach extra, \
+					wxWidgets \
+					JSONParser \
+					XMLParser \
+					, -IDelta/DeltaExtraLibraries/${extra}/Include ) \
+					\
 					-D_UNIX_ \
 
-LDFLAGS_RELEASE		= $(LDFLAGS_COMMON)
-CXXFLAGS_RELEASE	= $(CXXFLAGS_COMMON) -O2
-CPPFLAGS_RELEASE	= $(CPPFLAGS_COMMON) $(shell ${WXCONFIG} --debug=no --unicode=yes --cppflags)
+LDFLAGS_RELEASE		:= $(LDFLAGS_COMMON)
+CXXFLAGS_RELEASE	:= $(CXXFLAGS_COMMON) -O2
+CPPFLAGS_RELEASE	:= $(CPPFLAGS_COMMON) $(shell ${WXCONFIG} --debug=no --unicode=yes --cppflags)
 
-LDFLAGS_DEBUG		= $(LDFLAGS_COMMON)
-CXXFLAGS_DEBUG		= $(CXXFLAGS_COMMON) -g -O0
-CPPFLAGS_DEBUG		= $(CPPFLAGS_COMMON) -D_DEBUG $(shell ${WXCONFIG} --debug=yes --unicode=yes --cppflags)
+LDFLAGS_DEBUG		:= $(LDFLAGS_COMMON)
+CXXFLAGS_DEBUG		:= $(CXXFLAGS_COMMON) -g -O0
+CPPFLAGS_DEBUG		:= $(CPPFLAGS_COMMON) -D_DEBUG $(shell ${WXCONFIG} --debug=yes --unicode=yes --cppflags)
 
 _build/%.cpp.o : %.cpp
 	if ! [ -d $(dir $@) ] ; then mkdir --verbose --parent $(dir $@) ; fi
