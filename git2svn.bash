@@ -17,3 +17,5 @@ for path in $paths
 do
 	CHEKO "$path"
 done
+
+find . -iname unistd.h -print0 | xargs -0 rm -v
