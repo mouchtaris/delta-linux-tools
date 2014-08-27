@@ -1,9 +1,6 @@
 # vim: ts=4
-ifeq ($(WX_WIDGETS),)
-$(error 'WX_WIDGETS not set')
-endif
 ifeq (${WXCONFIG},)
-WXCONFIG=$(WX_WIDGETS)/bin/wx-config
+WXCONFIG=$(shell which wx-config)
 endif
 ifeq ($(XZ),)
 XZ=xz

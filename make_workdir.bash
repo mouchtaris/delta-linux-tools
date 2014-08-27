@@ -13,7 +13,6 @@ ln -sv "$delta"/Tools/Delta{,AnsiCompiler,AnsiVMDebug} . &&
 ln -sv "$mydir"/{GNUmakefile,make_sources.bash} . &&
 printf 'export CXX='\''ccache g++'\''
 export CCACHE_DIR='\'"$target"'/_ccache'\''
-export WX_WIDGETS=/usr
 export WXCONFIG=$(which wx-config32-2.8)
 ' > "$target"/env.bash
 
