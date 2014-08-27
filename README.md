@@ -53,4 +53,33 @@ After building with ccache, you need only store the `_ccache` directory for late
 
 When updating or building from scratch, simple move the stored `_ccache` directory into the `${build}` directory and remember to source `env.bash` before building. Ccache will eliminate all redundant recompilations and make experimentation and update rebuilds possible.
 
+## Build Results
+After a successful build, the files of interest can be found in the `${build}/bin` and `${build}/lib` directories.
 
+* `bin/nmdc` is the delta-compiler driver,
+* `bin/nmdvm` is the delta-VM driver,
+* `bin/nmdisco` is the command-line debugger,
+* `lib/libdelta.so` is the delta compiler and vm core as a shared library,
+* `lib/libwx.so` is the wx-extra library,
+* `lib/libxml.so` is the XMLParser-extra library
+
+The respective executables and libraries with debugging information are the same names ending with `d` before the filename extension.
+
+## Using the tools
+
+`nmdc` is used to compile delta source code files (usually `.dsc`) into delta bytecode files (usually `.dbc`).
+For example:
+
+    nmdc hello.dsc
+
+`nmdvm` is used to load and execute delta bytecode files. Only one file can be passed as a main/entry point. Every other bytecode file must be loaded by other language mechanisms (check out the official site).
+
+    nmdvm --main=hello.dbc
+
+`nmdvm` initially waits for a connection from a debugger, to a port printed before executing the "main" bytecode file. This connection is not necessary, and one can start execution without waiting for a debugger connection. In order to continue with the execution, follow the textual instructions printed by `nmdvm`.
+
+`nmdisco` provides a command line menu interface to debugging delta scripts. In order to debug a script, a `nmdvm` should be running and waiting for a debugger connection. Then, through `nmdisco` menu commands, one can connect to the VM. After this, the VM resumes execution after the user's input.
+
+The shared libraries can be loaded dynamically through a source script. For more information, check out the official site.
+
+Every driver program understands the `--help` argument, which caused it to print the rest of the understood options. The options are self-explanatory if one understands the Delta building system. I certainly do not very well, so check the official website for this as well.
