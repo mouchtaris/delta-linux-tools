@@ -1,5 +1,8 @@
 buildtime:
   multilib-devel
+  xz
+  gnumake
+  gnugcc
 
 runtime: 
-  wxgtk
+  lib32-wxgtk2.8

@@ -128,7 +128,7 @@ ${OutBuildDir}/%.cpp_d.ii.xz : %.cpp
 ${OutBuildDir}/%.cpp_d.o : %.cpp
 	$(CXX) $(CXXFLAGS_DEBUG) $(CPPFLAGS_DEBUG) -c -MD -MF ${OutBuildDir}/$*.cpp_d.d -o $@ $<
 
-all: ${AllDirs} \
+all: dirs \
      bin/nmdc \
      bin/nmdvm \
      bin/nmdisco \
@@ -142,10 +142,13 @@ all: ${AllDirs} \
      lib/libxmld.so \
 
 dirs: ${AllDirs}
-preprocessed: ${AllPreprocessed}
+preprocessed: _allprepro.tar
+	tar xvf _allprepro.tar
+_allprepro.tar: ${AllPreprocessed}
+	tar cvf $@ $^
 objects: ${AllObjects}
-clean:
-	for d in ${OutBuildDir} ${OutBinDir} ${OutLibDir} ; do if [ -d "$$d" ] ; then rm -rv "$$d" ; fi ; done ;
+clean: _allprepro.tar
+	rm -rvf ${OutBuildDir} ${OutBinDir} ${OutLibDir}
 .PHONY: all dirs preprocessed clean objects
 
 
@@ -154,7 +157,7 @@ lib/libdelta.so: $(Objects)
 lib/libxml.so: $(ObjectsXML)
 	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsXML) $(LDFLAGS_RELEASE)
 lib/libwx.so: $(ObjectsWx)
-	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsWx) $(LDFLAGS_RELEASE) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --debug=no --unicode --prefix)/lib $(shell ${WXCONFIG} --debug=no --unicode --libs)
+	$(CXX) $(CXXFLAGS_RELEASE) --shared -o $@ $(ObjectsWx) $(LDFLAGS_RELEASE) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --unicode --prefix)/lib $(shell ${WXCONFIG} --unicode --libs)
 
 bin/nmdc: $(ObjectsDeltaCompiler) lib/libdelta.so
 	$(CXX) $(CXXFLAGS_RELEASE) -o $@ $(LDFLAGS_RELEASE) $(ObjectsDeltaCompiler) -ldelta -ldl
@@ -170,7 +173,7 @@ lib/libdeltad.so: $(ObjectsD)
 lib/libxmld.so: $(ObjectsXMLD)
 	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsXMLD) $(LDFLAGS_DEBUG)
 lib/libwxd.so: $(ObjectsWxD)
-	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsWxD) $(LDFLAGS_DEBUG) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --debug --unicode --prefix)/lib $(shell ${WXCONFIG} --debug --unicode --libs)
+	$(CXX) $(CXXFLAGS_DEBUG) --shared -o $@ $(ObjectsWxD) $(LDFLAGS_DEBUG) -Xlinker --rpath -Xlinker $(shell ${WXCONFIG} --unicode --prefix)/lib $(shell ${WXCONFIG} --unicode --libs)
 
 bin/nmdcd: $(ObjectsDeltaCompilerD) lib/libdeltad.so
 	$(CXX) $(CXXFLAGS_DEBUG) -o $@ $(LDFLAGS_DEBUG) $(ObjectsDeltaCompilerD) -ldeltad -ldl
