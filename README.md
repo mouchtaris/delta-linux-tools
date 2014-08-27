@@ -41,16 +41,16 @@ cd ${tools} && bash setup.bash ${build} ${delta}
 ```
 
 ## Not using CCache
-In order to not use `ccache`, you should export the `CXX` environment variable to `g++` or something similar before running `make`.
+In order to not use `ccache`, you should export and set the `CXX` environment variable to `g++` or something similar before running `make`.
 
 ## Using CCache
 It is really *HIGHLY* recommended to use ccache. The source code uses a lot of headers, a lot of preprocessor macros and a lot of templates. The result is that compilation is very slow, especially because the same thousands of lines of headers are included again and again in tons of different source files.
 
-Using ccache makes re-building after an update run humane time.
+Using ccache makes re-building after an update run in humane time.
 
 ## CCache tips
 After building with ccache, you need only store the `_ccache` directory for later builds.
 
-When updating or building from scratch, simple move the stored `_ccache` directory into the ${build} directory and remember to source `env.bash` build building. Ccache will eliminate all redundant recompilations.
+When updating or building from scratch, simple move the stored `_ccache` directory into the `${build}` directory and remember to source `env.bash` before building. Ccache will eliminate all redundant recompilations and make experimentation and update rebuilds possible.
 
 
