@@ -7,7 +7,7 @@ local directoryName="$1"; shift;
 
 	local svnpath="$sparrow/trunk/Tools/$directoryName"
 	echo Cloning $svnpath ...
-	svn2git --nobranches --notags --rootistrunk "$svnpath"
+	svn2git --nobranches --notags "$svnpath"
 }
 
 
