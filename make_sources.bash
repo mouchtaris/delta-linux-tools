@@ -17,7 +17,6 @@ ls -1     \
           Delta/DebugServer/Src/*.cpp \
           Delta/DebugWatchValueInfo/Src/*.cpp \
           Delta/DeltaCompiler/Src/*.cpp \
-          Delta/DeltaDebugLoader/Src/*.cpp \
           Delta/DeltaDebugMessageEncoding/Src/*.cpp \
           Delta/DeltaDebuggedVMFacade/Src/*.cpp \
           Delta/DeltaPureVMFacade/Src/*.cpp \
@@ -50,6 +49,13 @@ ls -1    Delta/DeltaExtraLibraries/XMLParser/Src/*.cpp \
 | append
 
 
+
+printf '\n\nSourcesJSON = \\\n' | append
+ls -1 Delta/DeltaExtraLibraries/JSONParser/Src/*.cpp \
+| sort \
+| prepro \
+| append
+
 printf '\n\nSourcesDeltaCompiler = \\\n' | append
 printf 'DeltaAnsiCompiler/Source/main.cpp
 DeltaAnsiCompiler/Source/DeltaCompilerInvoker.cpp
@@ -69,4 +75,8 @@ DeltaAnsiVMDebug/Source/CommandLineArgumentsFactory.cpp
 | prepro \
 | append
 
+
+
+printf '\n\nSourcesDisco = \\\n' | append
+ls -1 Delta/DeltaConsoleDebugger/Src/*.cpp | sort | prepro | append
 
